@@ -12,15 +12,4 @@ Portafolio de actividades del Diplomado en Visualización de Datos en R.
 
 ## El dataset
 
-`clase-2-eda/afiliados_activos_anonimo.csv` — 5.454 afiliados **activos** de un servicio de salud universitario, 39 columnas (edad, antigüedad de afiliación, estamento, plan, sexo, parentesco, etnia, entre otras).
-
-### 🔒 Nota de privacidad
-
-Los datos provienen de un sistema real pero fueron **anonimizados** antes de publicarse:
-
-- Los **documentos de identidad** se reemplazaron por códigos hexadecimales aleatorios, de forma **consistente** en todo el archivo (la relación cotizante–beneficiario se conserva).
-- Los **nombres** se reemplazaron por personajes de historietas y dibujos animados, coherentes con el sexo registrado.
-- **Dirección, teléfonos y correo** son valores sintéticos generados al azar.
-- Los nombres de los médicos familiares también son ficticios.
-
-Ningún dato del archivo permite identificar a una persona real.
+`clase-2-eda/afiliados_activos_anonimo.csv` — 5.454 afiliados **activos** de un servicio de salud universitario, 39 columnas (edad, antigüedad de afiliación, estamento, plan, sexo, parentesco, etnia, entre otras). Datos anonimizados.
