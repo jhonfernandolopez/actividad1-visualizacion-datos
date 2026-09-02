@@ -22,4 +22,12 @@ Notebook en R/tidyverse: [`clase-2-eda/Actividad1_JhonLopez.ipynb`](clase-2-eda/
 
 ## 3. Tablero
 
-[`tablero/index.html`](tablero/index.html) — tablero de indicadores sobre la misma población: distribución por sexo, grupo etario, estamento, parentesco, etnia y evolución de afiliaciones por año (1990–2026). Abrir el archivo directamente en el navegador, o servirlo con GitHub Pages para un enlace público.
+Tablero interactivo en **Gradio** (la herramienta del módulo 5) sobre la misma población: distribución por sexo, grupo etario, estamento, parentesco, etnia y evolución de afiliaciones por año (1990–2026).
+
+Notebook: [`tablero_gradio/Tablero_Gradio_JhonLopez.ipynb`](tablero_gradio/Tablero_Gradio_JhonLopez.ipynb)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jhonfernandolopez/actividad1-visualizacion-datos/blob/main/tablero_gradio/Tablero_Gradio_JhonLopez.ipynb)
+
+⚠️ Al abrir el notebook hay que **ejecutar todas las celdas** para que genere el enlace público (`*.gradio.live`) — ese enlace es temporal, vive solo mientras el notebook siga corriendo y expira solo a las 72 horas.
+
+*(También queda disponible un tablero equivalente en HTML/JS puro, sin dependencias, como respaldo permanente: [`tablero/index.html`](tablero/index.html) — [en vivo aquí](https://jhonfernandolopez.github.io/actividad1-visualizacion-datos/tablero/).)*
