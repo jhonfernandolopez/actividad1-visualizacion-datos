@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablero — Afiliados Activos (AC)</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface-1:      #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --grid:           #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6; /* blue */
+    --series-2:       #eb6834; /* orange */
+    --seq-500:        #256abf;
+    --seq-400:        #3987e5;
+    --seq-200:        #9ec5f4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface-1:      #1a1a19;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --grid:           #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --seq-500:        #3987e5;
+      --seq-400:        #2a78d6;
+      --seq-200:        #184f95;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0d0d0d;
+    --surface-1:      #1a1a19;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --grid:           #2c2c2a;
+    --baseline:       #383835;
+    --border:         rgba(255,255,255,0.10);
+    --series-1:       #3987e5;
+    --series-2:       #d95926;
+    --seq-500:        #3987e5;
+    --seq-400:        #2a78d6;
+    --seq-200:        #184f95;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 28px 20px 60px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  header { margin-bottom: 24px; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin: 0 0 2px; }
+  .note { color: var(--text-muted); font-size: 12.5px; margin: 10px 0 0; }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .tile {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .tile .label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .tile .value { font-size: 28px; font-weight: 600; line-height: 1.1; }
+  .tile .value .unit { font-size: 15px; font-weight: 500; color: var(--text-secondary); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 14px;
+  }
+  .panel {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px 14px;
+    position: relative;
+  }
+  .panel.wide { grid-column: 1 / -1; }
+  .panel h2 { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+  .panel .desc { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin: 7px 0; }
+  .bar-label {
+    width: 200px; flex: 0 0 auto; font-size: 12px; color: var(--text-secondary);
+    text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .bar-track { flex: 1; height: 16px; background: transparent; position: relative; }
+  .bar-fill {
+    height: 100%; border-radius: 3px;
+    display: flex; align-items: center;
+  }
+  .bar-value {
+    font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-primary);
+    margin-left: 8px; width: 68px; flex: 0 0 auto;
+  }
+
+  .legend { display: flex; gap: 16px; margin-bottom: 10px; font-size: 12px; color: var(--text-secondary); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .axis-label { fill: var(--text-muted); font-size: 10.5px; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+  .line-path { fill: none; stroke: var(--seq-500); stroke-width: 2; }
+  .line-area { fill: var(--seq-200); opacity: 0.35; }
+  .dot { fill: var(--seq-500); }
+  .dot-hit { fill: transparent; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 10;
+    background: var(--text-primary); color: var(--page);
+    font-size: 11.5px; padding: 5px 8px; border-radius: 5px;
+    white-space: nowrap; opacity: 0; transition: opacity .08s;
+    transform: translate(-50%, -110%);
+  }
+  .tooltip.show { opacity: 1; }
+
+  footer { margin-top: 26px; font-size: 12px; color: var(--text-muted); }
+  footer a { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tablero — Afiliados Activos (AC), Servicio de Salud Univalle</h1>
+    <p class="subtitle">Proyecto final · Diplomado en Visualización de Datos y Creación de Tableros (Univalle) — sección 3 de 3</p>
+    <p class="note">Datos anonimizados: documentos → hash, nombres → seudónimos, contacto → sintético (ver sección de depuración). N = 5.454 afiliados con estado AC (activo).</p>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><div class="label">Total afiliados (AC)</div><div class="value" id="tile-total">—</div></div>
+    <div class="tile"><div class="label">% mujeres</div><div class="value" id="tile-mujeres">—</div></div>
+    <div class="tile"><div class="label">Edad promedio</div><div class="value" id="tile-edad">—</div></div>
+    <div class="tile"><div class="label">Antigüedad promedio</div><div class="value" id="tile-antiguedad">—</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h2>Distribución por sexo</h2>
+      <p class="desc">Conteo de afiliados activos</p>
+      <div id="chart-sexo"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Grupo etario</h2>
+      <p class="desc">Edad en años, agrupada</p>
+      <div id="chart-edad"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Estamento (top 7 + otros)</h2>
+      <p class="desc">Categoría de vinculación del cotizante</p>
+      <div id="chart-estamento"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Parentesco</h2>
+      <p class="desc">Relación del afiliado con el cotizante</p>
+      <div id="chart-parentesco"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Autorreconocimiento étnico</h2>
+      <p class="desc">Campo de caracterización étnica registrado</p>
+      <div id="chart-etnia"></div>
+    </div>
+
+    <div class="panel wide">
+      <h2>Afiliaciones por año (1990–2026)</h2>
+      <p class="desc">Cantidad de afiliados cuya fecha de afiliación cae en cada año</p>
+      <div id="chart-anio"></div>
+    </div>
+  </div>
+
+  <footer>
+    Fuente: SIIS Univalle, extracto anonimizado del <a href="../clase-2-eda/Actividad1_JhonLopez.ipynb">análisis exploratorio (EDA)</a>. ·
+    Generado para el proyecto final del diplomado. Metodología de color y accesibilidad validada (CVD-safe).
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script id="tablero-data" type="application/json">
+{
+ "total": 5454,
+ "pct_mujeres": 55.0,
+ "edad_prom": 58.9,
+ "antiguedad_prom": 24.5,
+ "sexo": {
+  "F": 3001,
+  "M": 2453
+ },
+ "edad": {
+  "0-17": 476,
+  "18-30": 364,
+  "31-45": 356,
+  "46-60": 1177,
+  "61-75": 1702,
+  "76+": 1379
+ },
+ "estamento": {
+  "EMPLEADO PUBLICO NO DOCENTE": 1102,
+  "EMPLEADO PUBLICO DOCENTE DECRETO 1279": 1100,
+  "PENSIONADO OFICIAL": 886,
+  "PENSIONADO DOCENTE": 744,
+  "PENSIONADO PUBLICO": 597,
+  "TRABAJADOR OFICIAL CON PREST DE LEY": 301,
+  "PENSIONADO SOBREVIVIENTE": 281,
+  "OTROS": 443
+ },
+ "etnia": {
+  "NINGUNA DE LAS ANTERIORES": 2754,
+  "MESTIZO": 1009,
+  "NEGRO, MULATO, AFROCOLOMBIANO O AFRODESCENDIENTE": 214,
+  "NO DEFINIDO": 194,
+  "INDIGENA": 50
+ },
+ "parentesco": {
+  "COTIZANTE (titular)": 3473,
+  "HIJO(A)": 813,
+  "CONYUGE": 811,
+  "PADRE O MADRE": 171,
+  "COMPAÑERO(A)": 143,
+  "HIJO(A) DISCAPACITADO": 43
+ },
+ "anio": {
+  "1990": 55,
+  "1991": 73,
+  "1992": 27,
+  "1993": 65,
+  "1994": 61,
+  "1995": 31,
+  "1996": 27,
+  "1997": 121,
+  "1998": 24,
+  "1999": 22,
+  "2000": 38,
+  "2001": 53,
+  "2002": 66,
+  "2003": 79,
+  "2004": 138,
+  "2005": 178,
+  "2006": 94,
+  "2007": 116,
+  "2008": 161,
+  "2009": 170,
+  "2010": 125,
+  "2011": 121,
+  "2012": 134,
+  "2013": 142,
+  "2014": 153,
+  "2015": 163,
+  "2016": 113,
+  "2017": 126,
+  "2018": 122,
+  "2019": 100,
+  "2020": 98,
+  "2021": 90,
+  "2022": 128,
+  "2023": 126,
+  "2024": 121,
+  "2025": 133,
+  "2026": 76
+ }
+}
+</script>
+<script>
+const DATA = JSON.parse(document.getElementById('tablero-data').textContent);
+const tip = document.getElementById('tooltip');
+const fmt = n => n.toLocaleString('es-CO');
+
+function showTip(evt, html) {
+  tip.innerHTML = html;
+  const r = evt.currentTarget.getBoundingClientRect();
+  tip.style.left = (r.left + r.width/2 + window.scrollX) + 'px';
+  tip.style.top = (r.top + window.scrollY) + 'px';
+  tip.classList.add('show');
+}
+function hideTip() { tip.classList.remove('show'); }
+
+// ---- horizontal bar chart (single hue = magnitude; explicit colors[] = identity) ----
+function barChart(containerId, entries, opts) {
+  opts = opts || {};
+  const colors = opts.colors || null; // array parallel to entries, or null -> single hue
+  const el = document.getElementById(containerId);
+  const max = Math.max(...entries.map(e => e[1]));
+  entries.forEach(([label, value], i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const pct = max ? (value / max * 100) : 0;
+    const color = colors ? colors[i % colors.length] : 'var(--seq-500)';
+    row.innerHTML = `
+      <div class="bar-label" title="${label}">${label}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${color}"></div></div>
+      <div class="bar-value">${fmt(value)}</div>`;
+    const fill = row.querySelector('.bar-fill');
+    fill.addEventListener('mouseenter', e => showTip(e, `<b>${label}</b>: ${fmt(value)}`));
+    fill.addEventListener('mouseleave', hideTip);
+    el.appendChild(row);
+  });
+}
+
+// ---- line chart (single series, sequential blue) ----
+function lineChart(containerId, entries) {
+  const el = document.getElementById(containerId);
+  const W = el.clientWidth || 1100, H = 220, padL = 40, padR = 10, padT = 10, padB = 26;
+  const xs = entries.map(e => +e[0]);
+  const ys = entries.map(e => e[1]);
+  const maxY = Math.max(...ys);
+  const x = i => padL + (W - padL - padR) * (i / (entries.length - 1));
+  const y = v => H - padB - (H - padT - padB) * (v / maxY);
+
+  let gridSvg = '', axisSvg = '';
+  const ticksY = 4;
+  for (let t = 0; t <= ticksY; t++) {
+    const v = maxY * t / ticksY;
+    const yy = y(v);
+    gridSvg += `<line class="gridline" x1="${padL}" x2="${W-padR}" y1="${yy}" y2="${yy}"/>`;
+    axisSvg += `<text class="axis-label" x="${padL-6}" y="${yy+3}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  let xAxis = '';
+  entries.forEach((e, i) => {
+    if (+e[0] % 5 === 0) {
+      xAxis += `<text class="axis-label" x="${x(i)}" y="${H-8}" text-anchor="middle">${e[0]}</text>`;
+    }
+  });
+
+  const pathD = entries.map((e, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(ys[i]).toFixed(1)).join(' ');
+  const areaD = pathD + ` L${x(entries.length-1).toFixed(1)},${(H-padB)} L${x(0).toFixed(1)},${(H-padB)} Z`;
+
+  let dots = '';
+  entries.forEach((e, i) => {
+    dots += `<circle class="dot-hit" data-label="${e[0]}" data-value="${e[1]}" cx="${x(i)}" cy="${y(ys[i])}" r="8"></circle>`;
+  });
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}">
+    ${gridSvg}
+    <line class="baseline" x1="${padL}" x2="${W-padR}" y1="${H-padB}" y2="${H-padB}"/>
+    <path class="line-area" d="${areaD}"/>
+    <path class="line-path" d="${pathD}"/>
+    ${entries.map((e,i)=>`<circle class="dot" cx="${x(i)}" cy="${y(ys[i])}" r="2.2"></circle>`).join('')}
+    ${dots}
+    ${axisSvg}
+    ${xAxis}
+  </svg>`;
+
+  el.querySelectorAll('.dot-hit').forEach(c => {
+    c.addEventListener('mouseenter', e => showTip(e, `<b>${c.dataset.label}</b>: ${fmt(+c.dataset.value)}`));
+    c.addEventListener('mouseleave', hideTip);
+  });
+}
+
+// ---- fill tiles ----
+document.getElementById('tile-total').textContent = fmt(DATA.total);
+document.getElementById('tile-mujeres').innerHTML = DATA.pct_mujeres + '<span class="unit">%</span>';
+document.getElementById('tile-edad').innerHTML = DATA.edad_prom + '<span class="unit"> años</span>';
+document.getElementById('tile-antiguedad').innerHTML = DATA.antiguedad_prom + '<span class="unit"> años</span>';
+
+// ---- sexo: identity, 2 categories -> categorical slots 1/2 ----
+{
+  const entries = [['Mujeres (F)', DATA.sexo.F], ['Hombres (M)', DATA.sexo.M]];
+  const legend = document.createElement('div');
+  legend.className = 'legend';
+  legend.innerHTML = `<span><i style="background:var(--series-1)"></i>Mujeres</span><span><i style="background:var(--series-2)"></i>Hombres</span>`;
+  document.getElementById('chart-sexo').appendChild(legend);
+  barChart('chart-sexo', entries, { colors: ['var(--series-1)', 'var(--series-2)'] });
+}
+
+// ---- magnitude charts: single hue ----
+barChart('chart-edad', Object.entries(DATA.edad));
+barChart('chart-estamento', Object.entries(DATA.estamento).sort((a,b)=>b[1]-a[1]));
+barChart('chart-parentesco', Object.entries(DATA.parentesco).sort((a,b)=>b[1]-a[1]));
+barChart('chart-etnia', Object.entries(DATA.etnia).sort((a,b)=>b[1]-a[1]));
+lineChart('chart-anio', Object.entries(DATA.anio));
+</script>
+</body>
+</html>
